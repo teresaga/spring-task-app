@@ -36,7 +36,7 @@ public class Task {
     @Column(name = "end_date")
     private Date endDate;
 
-    /*
-    @Column(name = "used_id")
-    private int usedId;*/
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
