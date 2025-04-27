@@ -28,6 +28,10 @@ public class Task {
     @Column(name = "create_at")
     private Date createAt;
 
+    @Column(name = "completed_at")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    private Date completedAt;
+
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "start_date")
     private Date startDate;
