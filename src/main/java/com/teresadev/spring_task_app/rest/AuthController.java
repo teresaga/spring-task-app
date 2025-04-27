@@ -1,17 +1,22 @@
 package com.teresadev.spring_task_app.rest;
 
+import com.teresadev.spring_task_app.dto.AuthRequestDTO;
+import com.teresadev.spring_task_app.dto.AuthResponseDTO;
+import com.teresadev.spring_task_app.dto.ErrorResponseDTO;
+import com.teresadev.spring_task_app.dto.UserResponseDTO;
 import com.teresadev.spring_task_app.entity.User;
 import com.teresadev.spring_task_app.security.JwtTokenUtil;
 import com.teresadev.spring_task_app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
@@ -22,33 +27,60 @@ public class AuthController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtTokenUtil jwtTokenUtil) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtTokenUtil jwtTokenUtil, AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.authenticationManager = authenticationManager;
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Test endpoint accessible");
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody User user) {
         Optional<User> userOptional = userService.getUserByEmail(user.getEmail());
 
         if (userOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User existed already");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponseDTO("User already exists"));
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User savedUser = userService.registerUser(user);
-        return ResponseEntity.ok("User registered successfully");
+        UserResponseDTO savedUser = userService.registerUser(user);
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
-        Optional<User> dbUser = userService.getUserByEmail(user.getEmail());
-        if (dbUser.isPresent() && user.getPassword().equals(dbUser.get().getPassword())) {
-            return ResponseEntity.ok(jwtTokenUtil.generateToken(dbUser.get().getEmail()));
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO authRequest) {
+        try {
+            // Authentication
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
+            );
+
+            // Configure Security context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // get authenticated user
+            User user = (User) authentication.getPrincipal();
+
+            // create JWT
+            String jwt = jwtTokenUtil.generateToken(user.getEmail());
+
+            // Create response DTO
+            AuthResponseDTO responseDTO = new AuthResponseDTO(jwt, user.getUsername(), user.getEmail());
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (BadCredentialsException e) {
+            // Handle invalid credentials
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponseDTO("Invalid email or password"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid credentials");
     }
 }

@@ -33,10 +33,6 @@ public class User {
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private Date registrationDate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "userRoleId", referencedColumnName = "userRoleId")
-    private UserRole userRoleId;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Task> tasks;
 }
