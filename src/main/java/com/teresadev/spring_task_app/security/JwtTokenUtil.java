@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class JwtTokenUtil {
 
     @Value("${jwt.secret}")
-    private static final String jwtSecret = "Br8Jmv1OBMSxe64hnbpO5cDJA1U5Ts4fuzsProoIb4A=";
+    private String jwtSecret;
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);

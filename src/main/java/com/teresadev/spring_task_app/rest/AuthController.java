@@ -18,13 +18,6 @@ public class AuthController {
     private final JwtTokenUtil jwtTokenUtil;
     private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    public AuthController(JwtTokenUtil jwtTokenUtil, AuthenticationManager authenticationManager, AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
-        this.jwtTokenUtil = jwtTokenUtil;
-        this.authenticationManager = authenticationManager;
-    }
-
     @GetMapping("/test")
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("Test endpoint accessible");
@@ -37,6 +30,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO authRequest) {
+        System.out.println("######Login endpoint reached with: " + authRequest.getEmail());
         return ResponseEntity.ok(authenticationService.authenticate(authRequest));
     }
 }

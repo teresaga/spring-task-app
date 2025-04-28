@@ -1,8 +1,10 @@
 package com.teresadev.spring_task_app.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,10 +13,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-@Entity
-@Builder
-@Table(name="users")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name="users")
 public class User implements UserDetails {
 
     @Id
@@ -37,9 +41,6 @@ public class User implements UserDetails {
     @Column(name = "registration_date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private Date registrationDate;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Task> tasks;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

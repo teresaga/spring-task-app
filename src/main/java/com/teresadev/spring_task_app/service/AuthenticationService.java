@@ -43,16 +43,24 @@ public class AuthenticationService {
     }
 
     public AuthResponseDTO authenticate(AuthRequestDTO request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        System.out.println(user.toString());
         var jwtToken = jwtTokenUtil.generateToken(user);
         return AuthResponseDTO.builder()
                 .email(request.getEmail())
+                .username(user.getUsername())
                 .token(jwtToken)
                 .build();
     }
