@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -38,6 +39,23 @@ public class TaskRestController {
             return ResponseEntity.ok("The task was successfully created.");
         }
         return null;
+    }
+
+    @PutMapping("/tasks/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable Integer id, @Valid @RequestBody TaskRequestDTO taskRequest) {
+
+        Task existingTask = taskService.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Task not found"));
+
+
+        existingTask.setTitle(taskRequest.getTitle());
+        existingTask.setDescription(taskRequest.getDescription());
+        existingTask.setStartDate(taskRequest.getStartDate());
+        existingTask.setEndDate(taskRequest.getEndDate());
+
+        taskService.update(existingTask);
+
+        return ResponseEntity.ok(existingTask);
     }
 
     @GetMapping("")

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,6 +18,10 @@ import java.util.stream.Collectors;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+
+    public Optional<Task> findById(Integer taskId) {
+        return taskRepository.findById(taskId);
+    }
 
     public List<Task> findAll() {
         return taskRepository.findAll();
@@ -36,6 +41,10 @@ public class TaskService {
                         task.getStartDate(),
                         task.getEndDate()))
                 .collect(Collectors.toList());
+    }
+
+    public void update(Task task) {
+        taskRepository.save(task);
     }
 
     public Task save(TaskRequestDTO request, User user) {

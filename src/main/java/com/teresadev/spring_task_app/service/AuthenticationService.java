@@ -56,7 +56,6 @@ public class AuthenticationService {
         }
 
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-        System.out.println(user.toString());
         var jwtToken = jwtTokenUtil.generateToken(user);
         return AuthResponseDTO.builder()
                 .email(request.getEmail())
