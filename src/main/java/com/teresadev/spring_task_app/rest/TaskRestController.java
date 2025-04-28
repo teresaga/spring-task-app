@@ -29,7 +29,6 @@ public class TaskRestController {
 
     @GetMapping("")
     public List<Task> getTasks() {
-        System.out.println("#####Get Tasks");
         return taskService.findAll();
     }
 }
