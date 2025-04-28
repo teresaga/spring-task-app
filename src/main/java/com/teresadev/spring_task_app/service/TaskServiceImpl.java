@@ -1,6 +1,7 @@
 package com.teresadev.spring_task_app.service;
 
 import com.teresadev.spring_task_app.dto.TaskRequestDTO;
+import com.teresadev.spring_task_app.dto.TaskResponseDTO;
 import com.teresadev.spring_task_app.entity.User;
 import com.teresadev.spring_task_app.repository.TaskRepository;
 import com.teresadev.spring_task_app.entity.Task;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -28,8 +30,20 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> findByUser(User userId) {
-        return taskRepository.findByUser(userId);
+    public List<TaskResponseDTO> findByUser(User userId) {
+        List<Task> tasks = taskRepository.findByUser(userId);
+
+        return tasks.stream()
+                .map(task -> new TaskResponseDTO(
+                        task.getId(),
+                        task.getTitle(),
+                        task.getDescription(),
+                        task.isDone(),
+                        task.getCreateAt(),
+                        task.getCompletedAt(),
+                        task.getStartDate(),
+                        task.getEndDate()))
+                .collect(Collectors.toList());
     }
 
     @Override
