@@ -1,5 +1,6 @@
 package com.teresadev.spring_task_app.service;
 
+import com.teresadev.spring_task_app.dto.TaskRequestDTO;
 import com.teresadev.spring_task_app.entity.User;
 import com.teresadev.spring_task_app.repository.TaskRepository;
 import com.teresadev.spring_task_app.entity.Task;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -28,5 +30,19 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> findByUser(User userId) {
         return taskRepository.findByUser(userId);
+    }
+
+    @Override
+    public Task save(TaskRequestDTO request, User user) {
+        var task = Task.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .completedAt(new Date())
+                .isDone(false)
+                .user(user)
+                .build();
+        return taskRepository.save(task);
     }
 }
