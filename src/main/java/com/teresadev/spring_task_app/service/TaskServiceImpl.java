@@ -1,5 +1,6 @@
 package com.teresadev.spring_task_app.service;
 
+import com.teresadev.spring_task_app.entity.User;
 import com.teresadev.spring_task_app.repository.TaskRepository;
 import com.teresadev.spring_task_app.entity.Task;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,5 +23,10 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> findAll() {
         return taskRepository.findAll();
+    }
+
+    @Override
+    public List<Task> findByUser(User userId) {
+        return taskRepository.findByUser(userId);
     }
 }
