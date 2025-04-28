@@ -5,7 +5,7 @@ import com.teresadev.spring_task_app.dto.TaskResponseDTO;
 import com.teresadev.spring_task_app.entity.User;
 import com.teresadev.spring_task_app.repository.TaskRepository;
 import com.teresadev.spring_task_app.entity.Task;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -13,14 +13,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TaskService {
 
     private final TaskRepository taskRepository;
-
-    @Autowired
-    public TaskService(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
-    }
 
     public List<Task> findAll() {
         return taskRepository.findAll();
