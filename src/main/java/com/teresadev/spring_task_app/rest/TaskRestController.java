@@ -9,6 +9,7 @@ import com.teresadev.spring_task_app.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -41,21 +43,62 @@ public class TaskRestController {
         return null;
     }
 
-    @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Integer id, @Valid @RequestBody TaskRequestDTO taskRequest) {
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateTask(@PathVariable("id") int id, @Valid @RequestBody TaskRequestDTO taskRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        Task existingTask = taskService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Task not found"));
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+            Task existingTask = taskService.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
 
-        existingTask.setTitle(taskRequest.getTitle());
-        existingTask.setDescription(taskRequest.getDescription());
-        existingTask.setStartDate(taskRequest.getStartDate());
-        existingTask.setEndDate(taskRequest.getEndDate());
+            if (!user.equals(existingTask.getUser())) {
+                System.out.println("###ACCESS DENIED: This user is not authorized to edit this task");
+                throw new AccessDeniedException("You are not authorized to edit this task");
+            }
 
-        taskService.update(existingTask);
+            existingTask.setTitle(taskRequest.getTitle());
+            existingTask.setDescription(taskRequest.getDescription());
+            existingTask.setStartDate(taskRequest.getStartDate());
+            existingTask.setEndDate(taskRequest.getEndDate());
 
-        return ResponseEntity.ok(existingTask);
+            taskService.update(existingTask);
+
+            return ResponseEntity.ok("The task was successfully changed.");
+        }
+        return null;
+    }
+
+    @PutMapping("/change-status/{id}")
+    public ResponseEntity<String> changeStatus(@PathVariable("id") int id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+            Task existingTask = taskService.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
+
+            if (!user.equals(existingTask.getUser())) {
+                System.out.println("###ACCESS DENIED: This user is not authorized to edit this task");
+                throw new AccessDeniedException("You are not authorized to edit this task");
+            }
+
+            boolean currentValue = existingTask.isDone();
+
+            if (!currentValue) {
+                existingTask.setCompletedAt(new Date());
+            } else {
+                existingTask.setCompletedAt(null);
+            }
+
+            existingTask.setDone(!currentValue);
+            taskService.update(existingTask);
+
+            return ResponseEntity.ok("The task status was successfully changed.");
+        }
+        return null;
     }
 
     @GetMapping("")
