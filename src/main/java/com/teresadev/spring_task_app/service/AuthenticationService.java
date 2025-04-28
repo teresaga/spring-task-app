@@ -26,7 +26,7 @@ public class AuthenticationService {
 
     public AuthResponseDTO registerUser(RegisterRequest request) {
         var user = User.builder()
-                .username(request.getUsername())
+                .name(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
@@ -60,7 +60,7 @@ public class AuthenticationService {
         var jwtToken = jwtTokenUtil.generateToken(user);
         return AuthResponseDTO.builder()
                 .email(request.getEmail())
-                .username(user.getUsername())
+                .username(user.getName())
                 .token(jwtToken)
                 .build();
     }
