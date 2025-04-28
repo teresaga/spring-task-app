@@ -114,4 +114,26 @@ public class TaskRestController {
 
         return tasks;
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTask(@PathVariable("id") int id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+            Task existingTask = taskService.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
+
+            if (!user.equals(existingTask.getUser())) {
+                System.out.println("###ACCESS DENIED: This user is not authorized to delete this task");
+                throw new AccessDeniedException("You are not authorized to delete this task");
+            }
+
+            taskService.delete(existingTask.getId());
+
+            return ResponseEntity.ok("The task was removed.");
+        }
+        return null;
+    }
 }

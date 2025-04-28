@@ -59,4 +59,8 @@ public class TaskService {
                 .build();
         return taskRepository.save(task);
     }
+
+    public void delete(int taskId) {
+        taskRepository.deleteById(taskId);
+    }
 }
