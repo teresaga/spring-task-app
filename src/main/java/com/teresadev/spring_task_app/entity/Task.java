@@ -1,14 +1,20 @@
 package com.teresadev.spring_task_app.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name="tasks")
-@Data
 public class Task {
 
     @Id
@@ -27,6 +33,10 @@ public class Task {
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "create_at")
     private Date createAt;
+
+    @Column(name = "completed_at")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    private Date completedAt;
 
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "start_date")
