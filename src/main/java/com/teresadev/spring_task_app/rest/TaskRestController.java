@@ -29,6 +29,36 @@ public class TaskRestController {
     private final TaskService taskService;
     private final UserRepository userRepository;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> findTaskById(@PathVariable("id") int id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+            Task existingTask = taskService.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
+
+            if (!user.equals(existingTask.getUser())) {
+                System.out.println("###ACCESS DENIED: This user is not authorized to access this task");
+                throw new AccessDeniedException("You are not authorized to access this task");
+            }
+
+            TaskResponseDTO result = TaskResponseDTO.builder()
+                            .id(existingTask.getId())
+                            .title(existingTask.getTitle())
+                            .description(existingTask.getDescription())
+                            .startDate(existingTask.getStartDate())
+                            .endDate(existingTask.getEndDate())
+                            .completedAt(existingTask.getCompletedAt())
+                            .isDone(existingTask.isDone())
+                            .build();
+
+            return ResponseEntity.ok(result);
+        }
+        return null;
+    }
+
     @PostMapping("")
     public ResponseEntity<String> newTask(@Valid @RequestBody TaskRequestDTO task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
