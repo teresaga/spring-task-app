@@ -6,6 +6,7 @@ import com.teresadev.spring_task_app.entity.Task;
 import com.teresadev.spring_task_app.entity.User;
 import com.teresadev.spring_task_app.repository.UserRepository;
 import com.teresadev.spring_task_app.service.TaskService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -27,7 +28,7 @@ public class TaskRestController {
     private final UserRepository userRepository;
 
     @PostMapping("")
-    public ResponseEntity<String> newTask(@RequestBody TaskRequestDTO task) {
+    public ResponseEntity<String> newTask(@Valid @RequestBody TaskRequestDTO task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
@@ -48,7 +49,6 @@ public class TaskRestController {
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
             User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            System.out.println(user.toString());
             tasks = taskService.findByUser(user);
         }
 
