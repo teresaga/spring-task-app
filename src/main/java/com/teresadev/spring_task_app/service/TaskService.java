@@ -53,7 +53,7 @@ public class TaskService {
                 .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .completedAt(new Date())
+                .createAt(new Date())
                 .isDone(false)
                 .user(user)
                 .build();
