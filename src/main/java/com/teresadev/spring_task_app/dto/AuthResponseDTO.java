@@ -11,12 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AuthResponseDTO {
     private String token;
-    private String username;
     private String email;
 
     public AuthResponseDTO(String message) {
         this.token = null;
-        this.username = message;
         this.email = null;
     }
 }

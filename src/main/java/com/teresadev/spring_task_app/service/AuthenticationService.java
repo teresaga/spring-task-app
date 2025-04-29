@@ -30,7 +30,6 @@ public class AuthenticationService {
         }
 
         var user = User.builder()
-                .name(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
@@ -40,7 +39,6 @@ public class AuthenticationService {
         userRepository.save(user);
         var jwtToken = jwtTokenUtil.generateToken(user);
         return AuthResponseDTO.builder()
-                .username(request.getUsername())
                 .email(request.getEmail())
                 .token(jwtToken)
                 .build();
@@ -63,7 +61,6 @@ public class AuthenticationService {
         var jwtToken = jwtTokenUtil.generateToken(user);
         return AuthResponseDTO.builder()
                 .email(request.getEmail())
-                .username(user.getName())
                 .token(jwtToken)
                 .build();
     }
