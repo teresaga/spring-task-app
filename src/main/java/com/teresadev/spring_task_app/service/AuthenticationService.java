@@ -25,6 +25,10 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponseDTO registerUser(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("El correo ya está registrado.");
+        }
+
         var user = User.builder()
                 .name(request.getUsername())
                 .email(request.getEmail())
