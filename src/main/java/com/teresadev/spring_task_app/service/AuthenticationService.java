@@ -5,11 +5,14 @@ import com.teresadev.spring_task_app.dto.AuthRequestDTO;
 import com.teresadev.spring_task_app.dto.AuthResponseDTO;
 import com.teresadev.spring_task_app.dto.RegisterRequest;
 import com.teresadev.spring_task_app.entity.User;
+import com.teresadev.spring_task_app.exception.CustomAuthException;
 import com.teresadev.spring_task_app.repository.UserRepository;
 import com.teresadev.spring_task_app.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -52,13 +55,19 @@ public class AuthenticationService {
                             request.getPassword()
                     )
             );
+        } catch (BadCredentialsException e) {
+            throw new CustomAuthException("Credenciales incorrectas");
+        } catch (UsernameNotFoundException e) {
+            throw new CustomAuthException("Usuario no encontrado");
         } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+            throw new CustomAuthException("Error de autenticación");
         }
 
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomAuthException("Usuario no encontrado"));
+
         var jwtToken = jwtTokenUtil.generateToken(user);
+
         return AuthResponseDTO.builder()
                 .email(request.getEmail())
                 .token(jwtToken)
