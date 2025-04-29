@@ -26,13 +26,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CustomAuthException.class)
-    public ResponseEntity<Object> handleCustomAuthException(CustomAuthException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.UNAUTHORIZED.value());
-        body.put("message", ex.getMessage());
-
-        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<String> handleCustomAuthException(CustomAuthException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)
