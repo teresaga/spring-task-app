@@ -9,4 +9,4 @@ FROM openjdk:17-jdk-slim
 WORKDIR /taskapp
 COPY --from=build /taskapp/target/spring-task-app-0.0.1-SNAPSHOT.jar task-app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "task-app.jar"]
