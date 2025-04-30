@@ -29,141 +29,50 @@ public class TaskRestController {
     private final TaskService taskService;
     private final UserRepository userRepository;
 
+    private User getAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) throw new AccessDeniedException("Not authenticated");
+        return userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponseDTO> findTaskById(@PathVariable("id") int id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            Task existingTask = taskService.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
-
-            if (!user.equals(existingTask.getUser())) {
-                System.out.println("###ACCESS DENIED: This user is not authorized to access this task");
-                throw new AccessDeniedException("You are not authorized to access this task");
-            }
-
-            TaskResponseDTO result = TaskResponseDTO.builder()
-                            .id(existingTask.getId())
-                            .title(existingTask.getTitle())
-                            .description(existingTask.getDescription())
-                            .startDate(existingTask.getStartDate())
-                            .endDate(existingTask.getEndDate())
-                            .completedAt(existingTask.getCompletedAt())
-                            .isDone(existingTask.isDone())
-                            .build();
-
-            return ResponseEntity.ok(result);
-        }
-        return null;
+        User user = getAuthenticatedUser();
+        return ResponseEntity.ok(taskService.getByIdWithAuth(id, user));
     }
 
     @PostMapping("")
     public ResponseEntity<String> newTask(@Valid @RequestBody TaskRequestDTO task) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            Task savedTask = taskService.save(task, user);
-
-            return ResponseEntity.ok("The task was successfully created.");
-        }
-        return null;
+        User user = getAuthenticatedUser();
+        taskService.save(task, user);
+        return ResponseEntity.ok("The task was successfully created.");
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<String> updateTask(@PathVariable("id") int id, @Valid @RequestBody TaskRequestDTO taskRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            Task existingTask = taskService.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
-
-            if (!user.equals(existingTask.getUser())) {
-                System.out.println("###ACCESS DENIED: This user is not authorized to edit this task");
-                throw new AccessDeniedException("You are not authorized to edit this task");
-            }
-
-            existingTask.setTitle(taskRequest.getTitle());
-            existingTask.setDescription(taskRequest.getDescription());
-            existingTask.setStartDate(taskRequest.getStartDate());
-            existingTask.setEndDate(taskRequest.getEndDate());
-
-            taskService.update(existingTask);
-
-            return ResponseEntity.ok("The task was successfully changed.");
-        }
-        return null;
+        User user = getAuthenticatedUser();
+        taskService.updateTask(id, taskRequest, user);
+        return ResponseEntity.ok("The task was successfully changed.");
     }
 
     @PutMapping("/change-status/{id}")
     public ResponseEntity<String> changeStatus(@PathVariable("id") int id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            Task existingTask = taskService.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
-
-            if (!user.equals(existingTask.getUser())) {
-                System.out.println("###ACCESS DENIED: This user is not authorized to edit this task");
-                throw new AccessDeniedException("You are not authorized to edit this task");
-            }
-
-            boolean currentValue = existingTask.isDone();
-
-            if (!currentValue) {
-                existingTask.setCompletedAt(new Date());
-            } else {
-                existingTask.setCompletedAt(null);
-            }
-
-            existingTask.setDone(!currentValue);
-            taskService.update(existingTask);
-
-            return ResponseEntity.ok("The task status was successfully changed.");
-        }
-        return null;
+        User user = getAuthenticatedUser();
+        taskService.changeStatus(id, user);
+        return ResponseEntity.ok("The task status was successfully changed.");
     }
 
     @GetMapping("")
-    public List<TaskResponseDTO> getTasks() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<TaskResponseDTO> tasks = new ArrayList<>();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            tasks = taskService.findByUser(user);
-        }
-
-        return tasks;
+    public ResponseEntity<List<TaskResponseDTO>> getTasks() {
+        User user = getAuthenticatedUser();
+        return ResponseEntity.ok(taskService.findByUser(user));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTask(@PathVariable("id") int id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            Task existingTask = taskService.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("Task not found"));
-
-            if (!user.equals(existingTask.getUser())) {
-                System.out.println("###ACCESS DENIED: This user is not authorized to delete this task");
-                throw new AccessDeniedException("You are not authorized to delete this task");
-            }
-
-            taskService.delete(existingTask.getId());
-
-            return ResponseEntity.ok("The task was removed.");
-        }
-        return null;
+        User user = getAuthenticatedUser();
+        taskService.delete(id, user);
+        return ResponseEntity.ok("The task was removed.");
     }
 }
